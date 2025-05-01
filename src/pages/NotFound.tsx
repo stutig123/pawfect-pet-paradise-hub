@@ -12,11 +12,18 @@ const NotFound = () => {
         <p className="text-xl mb-8 max-w-lg mx-auto">
           Oops! Looks like the page you're looking for has run away. Let's help you find your way back.
         </p>
-        <Link to="/">
-          <Button className="bg-pet-purple hover:bg-pet-darkPurple">
-            Return to Home
-          </Button>
-        </Link>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link to="/">
+            <Button className="bg-pet-purple hover:bg-pet-darkPurple">
+              Return to Home
+            </Button>
+          </Link>
+          <Link to="/pets">
+            <Button variant="outline" className="border-pet-purple text-pet-purple hover:bg-pet-purple/10">
+              Browse Pets
+            </Button>
+          </Link>
+        </div>
       </div>
     </Layout>
   );
