@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Order, AdoptionRequest } from "@/lib/types";
+import { Order, AdoptionRequest, AdoptionStatus } from "@/lib/types";
 import ordersData from "@/lib/data/orders.json";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
 import petsData from "@/lib/data/pets.json";
@@ -30,9 +30,12 @@ const UserDashboard = () => {
       const orders = ordersData.filter(order => order.userId === user.id);
       setUserOrders(orders);
 
-      const adoptions = adoptionRequestsData.filter(
-        adoption => adoption.userId === user.id
-      );
+      const adoptions = adoptionRequestsData
+        .filter(adoption => adoption.userId === user.id)
+        .map(adoption => ({
+          ...adoption,
+          status: adoption.status as AdoptionStatus
+        }));
       setUserAdoptions(adoptions);
     }
   }, [isAuthenticated, user, navigate]);

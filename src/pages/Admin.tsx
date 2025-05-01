@@ -7,7 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AdoptionRequest, AdoptionStatus, Pet, Product } from "@/lib/types";
+import { AdoptionRequest, AdoptionStatus, Pet, PetCategory, PetStatus, Product } from "@/lib/types";
 import petsData from "@/lib/data/pets.json";
 import productsData from "@/lib/data/products.json";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
@@ -42,12 +42,27 @@ const Admin = () => {
   };
 
   // Find pet details for an adoption request
-  const getPetDetails = (petId: string) => {
+  const getPetDetails = (petId: string): Pet => {
     const pet = petsData.find(pet => pet.id === petId);
     if (pet) {
-      return pet;
+      return {
+        ...pet,
+        category: pet.category as PetCategory,
+        status: pet.status as PetStatus
+      };
     }
-    return { name: "Unknown Pet", category: "unknown" };
+    return { 
+      id: "unknown", 
+      name: "Unknown Pet", 
+      category: "other" as PetCategory,
+      breed: "",
+      age: 0,
+      price: 0,
+      description: "",
+      imageUrl: "",
+      status: "available" as PetStatus,
+      addedAt: new Date().toISOString()
+    };
   };
 
   // Find user details
