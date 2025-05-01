@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
@@ -7,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import { Pet, PetCategory } from "@/lib/types";
+import { Pet, PetCategory, PetStatus } from "@/lib/types";
 import petsData from "@/lib/data/pets.json";
 
 const PetDetails = () => {
@@ -17,7 +16,8 @@ const PetDetails = () => {
     if (foundPet) {
       return {
         ...foundPet,
-        category: foundPet.category as PetCategory
+        category: foundPet.category as PetCategory,
+        status: foundPet.status as PetStatus
       };
     }
     return null;
@@ -67,7 +67,7 @@ const PetDetails = () => {
       id: `ADO-${Math.random().toString(36).substr(2, 9)}`,
       userId: user!.id,
       petId: pet.id,
-      status: "pending" as const,
+      status: "pending" as PetStatus,
       requestReason: adoptionReason,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { Navigate, Link } from "react-router-dom";
@@ -43,7 +42,11 @@ const Admin = () => {
 
   // Find pet details for an adoption request
   const getPetDetails = (petId: string) => {
-    return petsData.find(pet => pet.id === petId) || { name: "Unknown Pet", category: "unknown" };
+    const pet = petsData.find(pet => pet.id === petId);
+    if (pet) {
+      return pet;
+    }
+    return { name: "Unknown Pet", category: "unknown" };
   };
 
   // Find user details
@@ -359,7 +362,7 @@ const Admin = () => {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold">Pet Information</h3>
-                  <p>{getPetDetails(currentAdoption.petId).name} ({getPetDetails(currentAdoption.petId).breed})</p>
+                  <p>{getPetDetails(currentAdoption.petId).name} ({getPetDetails(currentAdoption.petId).breed || 'Unknown breed'})</p>
                 </div>
                 
                 <div>
