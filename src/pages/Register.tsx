@@ -43,9 +43,10 @@ const Register = () => {
       await register(name, email, password);
       toast({
         title: "Registration successful!",
-        description: "Welcome to PawfectPets!",
+        description: "Your account has been created. Please login.",
       });
-      navigate("/");
+      // Redirect to login page after successful registration
+      navigate("/login");
     } catch (error) {
       toast({
         title: "Registration failed",

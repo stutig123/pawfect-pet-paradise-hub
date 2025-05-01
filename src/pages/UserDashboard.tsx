@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Order, AdoptionRequest, AdoptionStatus } from "@/lib/types";
+import { Order, AdoptionRequest, AdoptionStatus, PetStatus, PetCategory } from "@/lib/types";
 import ordersData from "@/lib/data/orders.json";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
 import petsData from "@/lib/data/pets.json";
@@ -27,16 +27,29 @@ const UserDashboard = () => {
 
     // Filter orders and adoption requests for this user
     if (user) {
-      const orders = ordersData.filter(order => order.userId === user.id);
-      setUserOrders(orders);
+      // Filter orders for this user
+      const filteredOrders = ordersData
+        .filter(order => order.userId === user.id)
+        .map(order => ({
+          ...order,
+          status: order.status
+        }));
+      setUserOrders(filteredOrders);
 
-      const adoptions = adoptionRequestsData
+      // Filter adoption requests for this user and ensure they have the correct typing
+      const filteredAdoptions = adoptionRequestsData
         .filter(adoption => adoption.userId === user.id)
         .map(adoption => ({
           ...adoption,
           status: adoption.status as AdoptionStatus
         }));
-      setUserAdoptions(adoptions);
+      setUserAdoptions(filteredAdoptions);
+      
+      console.log("User data loaded:", { 
+        user, 
+        orders: filteredOrders.length,
+        adoptions: filteredAdoptions.length
+      });
     }
   }, [isAuthenticated, user, navigate]);
 

@@ -1,11 +1,10 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Role, AuthState } from "@/lib/types";
 import users from "@/lib/data/users.json";
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (name: string, email: string, password: string) => Promise<User>;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -52,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
@@ -80,6 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading: false,
         error: null,
       });
+      
+      return typedUser;
     } catch (error) {
       console.error("Login error:", error);
       setAuthState((prev) => ({
@@ -91,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string): Promise<User> => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
@@ -123,6 +124,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading: false,
         error: null,
       });
+      
+      return newUser;
     } catch (error) {
       console.error("Registration error:", error);
       setAuthState((prev) => ({

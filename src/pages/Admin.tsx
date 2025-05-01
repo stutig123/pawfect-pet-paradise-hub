@@ -12,12 +12,14 @@ import petsData from "@/lib/data/pets.json";
 import productsData from "@/lib/data/products.json";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
 import usersData from "@/lib/data/users.json";
+import { useToast } from "@/components/ui/use-toast";
 
 const Admin = () => {
   const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "pets" | "products" | "adoptions">("dashboard");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentAdoption, setCurrentAdoption] = useState<AdoptionRequest | null>(null);
+  const { toast } = useToast();
 
   // Redirect if not authenticated or not an admin
   if (!isAuthenticated || user?.role !== "admin") {
@@ -27,12 +29,20 @@ const Admin = () => {
   const handleApproveAdoption = (adoptionId: string) => {
     // In a real app, this would update the database
     console.log("Approved adoption:", adoptionId);
+    toast({
+      title: "Adoption Approved",
+      description: "The adoption request has been approved.",
+    });
     setDialogOpen(false);
   };
 
   const handleRejectAdoption = (adoptionId: string) => {
     // In a real app, this would update the database
     console.log("Rejected adoption:", adoptionId);
+    toast({
+      title: "Adoption Rejected",
+      description: "The adoption request has been rejected.",
+    });
     setDialogOpen(false);
   };
 

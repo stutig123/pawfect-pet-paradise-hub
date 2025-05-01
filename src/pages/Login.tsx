@@ -28,12 +28,18 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      const user = await login(email, password);
       toast({
         title: "Login successful!",
         description: "Welcome to PawfectPets!",
       });
-      navigate("/");
+      
+      // Redirect admin users to the admin dashboard, regular users to home
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       toast({
         title: "Login failed",
