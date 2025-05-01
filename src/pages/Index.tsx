@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,17 +8,28 @@ import Layout from "@/components/layout/Layout";
 // Import sample data
 import petsData from "@/lib/data/pets.json";
 import productsData from "@/lib/data/products.json";
-import { Pet, Product } from "@/lib/types";
+import { Pet, Product, PetCategory, ProductCategory } from "@/lib/types";
 
 const Index = () => {
   const [featuredPets, setFeaturedPets] = useState<Pet[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   
   useEffect(() => {
+    // Cast the imported JSON data to the proper types
+    const typedPets = petsData.map(pet => ({
+      ...pet,
+      category: pet.category as PetCategory,
+      status: pet.status as Pet['status']
+    })) as Pet[];
+    
+    const typedProducts = productsData.map(product => ({
+      ...product,
+      category: product.category as ProductCategory
+    })) as Product[];
+    
     // Simulate getting featured items
-    // In a real app with more data, you'd have a featured flag or filter for newest/best sellers
-    setFeaturedPets(petsData.slice(0, 3));
-    setFeaturedProducts(productsData.slice(0, 3));
+    setFeaturedPets(typedPets.slice(0, 3));
+    setFeaturedProducts(typedProducts.slice(0, 3));
   }, []);
 
   // Pet category emojis

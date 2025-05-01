@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Role, AuthState } from "@/lib/types";
 import users from "@/lib/data/users.json";
@@ -101,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name,
         email,
         password,
-        role: "user" as Role,
+        role: "user" as Role, // Explicitly cast to Role type
         createdAt: new Date().toISOString(),
       };
 
