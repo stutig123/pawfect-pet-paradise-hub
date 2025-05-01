@@ -1,0 +1,19 @@
+
+[
+  {
+    "id": "admin-01",
+    "name": "Admin User",
+    "email": "admin@petstore.com",
+    "password": "admin123",
+    "role": "admin",
+    "createdAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "user-01",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "role": "user",
+    "createdAt": "2023-01-02T00:00:00Z"
+  }
+]

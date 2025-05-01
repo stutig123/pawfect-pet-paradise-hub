@@ -1,0 +1,63 @@
+
+[
+  {
+    "id": "food-01",
+    "name": "Premium Dog Food",
+    "category": "food",
+    "price": 1200,
+    "description": "High-quality dry dog food with balanced nutrition. 5kg bag.",
+    "imageUrl": "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=2071&auto=format&fit=crop",
+    "stock": 50,
+    "addedAt": "2023-02-01T00:00:00Z"
+  },
+  {
+    "id": "food-02",
+    "name": "Gourmet Cat Food",
+    "category": "food",
+    "price": 900,
+    "description": "Gourmet wet cat food with real fish. Pack of 12 cans.",
+    "imageUrl": "https://images.unsplash.com/photo-1597843786411-a9121eb3ef4b?q=80&w=2112&auto=format&fit=crop",
+    "stock": 40,
+    "addedAt": "2023-02-05T00:00:00Z"
+  },
+  {
+    "id": "toy-01",
+    "name": "Interactive Dog Toy",
+    "category": "toy",
+    "price": 550,
+    "description": "Durable interactive toy that dispenses treats. Great for mental stimulation.",
+    "imageUrl": "https://images.unsplash.com/photo-1575859257984-df4087952263?q=80&w=2089&auto=format&fit=crop",
+    "stock": 30,
+    "addedAt": "2023-02-10T00:00:00Z"
+  },
+  {
+    "id": "toy-02",
+    "name": "Cat Teaser Wand",
+    "category": "toy",
+    "price": 350,
+    "description": "Feather teaser wand to engage your cat's hunting instinct.",
+    "imageUrl": "https://images.unsplash.com/photo-1526336179256-1347bdb255ee?q=80&w=2069&auto=format&fit=crop",
+    "stock": 25,
+    "addedAt": "2023-02-15T00:00:00Z"
+  },
+  {
+    "id": "accessory-01",
+    "name": "Adjustable Dog Collar",
+    "category": "accessory",
+    "price": 450,
+    "description": "Comfortable, adjustable dog collar made of durable nylon. Available in multiple colors.",
+    "imageUrl": "https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?q=80&w=2070&auto=format&fit=crop",
+    "stock": 60,
+    "addedAt": "2023-03-01T00:00:00Z"
+  },
+  {
+    "id": "accessory-02",
+    "name": "Cat Litter Box",
+    "category": "accessory",
+    "price": 1500,
+    "description": "Covered cat litter box with carbon filter to control odors.",
+    "imageUrl": "https://images.unsplash.com/photo-1605978373493-482803ccad50?q=80&w=2069&auto=format&fit=crop",
+    "stock": 15,
+    "addedAt": "2023-03-05T00:00:00Z"
+  }
+]
