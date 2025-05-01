@@ -5,13 +5,18 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Product, ProductCategory } from "@/lib/types";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import productsData from "@/lib/data/products.json";
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { addToCart } = useCart();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     // Simulate API call to get product details
@@ -39,6 +44,35 @@ const ProductDetails = () => {
       setLoading(false);
     }
   }, [id, toast]);
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart({
+        type: "product",
+        itemId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: quantity,
+        imageUrl: product.imageUrl
+      });
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (product) {
+      addToCart({
+        type: "product",
+        itemId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: quantity,
+        imageUrl: product.imageUrl
+      });
+      
+      // Navigate to checkout
+      window.location.href = "/checkout";
+    }
+  };
 
   if (loading) {
     return (
@@ -75,6 +109,9 @@ const ProductDetails = () => {
     grooming: "✂️",
     other: "📦",
   };
+
+  // Check if user is admin
+  const isAdmin = isAuthenticated && user?.role === "admin";
 
   return (
     <Layout>
@@ -119,14 +156,60 @@ const ProductDetails = () => {
               <p className="text-2xl font-bold text-pet-purple">₹{product.price.toLocaleString()}</p>
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button className="bg-pet-purple hover:bg-pet-darkPurple">
-                Add to Cart
-              </Button>
-              <Button variant="outline" className="border-pet-purple text-pet-purple hover:bg-pet-purple/10">
-                Buy Now
-              </Button>
-            </div>
+            {!isAdmin && (
+              <>
+                <div className="pt-2">
+                  <h2 className="text-lg font-display font-bold mb-2">Quantity</h2>
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                      disabled={quantity <= 1}
+                    >
+                      -
+                    </Button>
+                    <span className="w-10 text-center">{quantity}</span>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setQuantity(prev => Math.min(product.stock, prev + 1))}
+                      disabled={quantity >= product.stock}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <Button 
+                    className="bg-pet-purple hover:bg-pet-darkPurple"
+                    onClick={handleAddToCart}
+                    disabled={product.stock <= 0}
+                  >
+                    Add to Cart
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-pet-purple text-pet-purple hover:bg-pet-purple/10"
+                    onClick={handleBuyNow}
+                    disabled={product.stock <= 0}
+                  >
+                    Buy Now
+                  </Button>
+                </div>
+
+                {product.stock <= 0 && (
+                  <p className="text-red-500 text-sm mt-2">This product is currently out of stock</p>
+                )}
+
+                {!isAuthenticated && (
+                  <p className="text-sm text-gray-500 pt-2">
+                    You need to <a href="/login" className="text-pet-purple hover:underline">login</a> to purchase this product.
+                  </p>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,2 +1,30 @@
 
-[]
+[
+  {
+    "id": "ADO-001",
+    "userId": "user-01",
+    "petId": "dog-01",
+    "status": "pending",
+    "requestReason": "I've always wanted a Golden Retriever and I have a large yard where Max can play and run. I work from home so I can provide constant care and attention.",
+    "createdAt": "2023-05-01T00:00:00Z",
+    "updatedAt": "2023-05-01T00:00:00Z"
+  },
+  {
+    "id": "ADO-002",
+    "userId": "user-01",
+    "petId": "cat-01",
+    "status": "approved",
+    "requestReason": "I live in a quiet apartment that would be perfect for Luna. I've had Persian cats before and know how to care for their coat and special needs.",
+    "createdAt": "2023-04-28T00:00:00Z",
+    "updatedAt": "2023-04-29T00:00:00Z"
+  },
+  {
+    "id": "ADO-003",
+    "userId": "user-01",
+    "petId": "bird-01",
+    "status": "rejected",
+    "requestReason": "I would like to add a bird to my pet collection. I have experience with birds and can provide a spacious cage.",
+    "createdAt": "2023-04-25T00:00:00Z",
+    "updatedAt": "2023-04-26T00:00:00Z"
+  }
+]
