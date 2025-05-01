@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { Navigate, Link } from "react-router-dom";
@@ -305,31 +306,35 @@ const Admin = () => {
                   <TableBody>
                     {adoptionRequestsData.length > 0 ? (
                       adoptionRequestsData.map((adoption) => {
-                        const pet = getPetDetails(adoption.petId);
-                        const requester = getUserDetails(adoption.userId);
+                        const typedAdoption = {
+                          ...adoption,
+                          status: adoption.status as AdoptionStatus
+                        };
+                        const pet = getPetDetails(typedAdoption.petId);
+                        const requester = getUserDetails(typedAdoption.userId);
                         
                         return (
-                          <TableRow key={adoption.id}>
-                            <TableCell>#{adoption.id.substring(0, 8)}</TableCell>
+                          <TableRow key={typedAdoption.id}>
+                            <TableCell>#{typedAdoption.id.substring(0, 8)}</TableCell>
                             <TableCell>{pet.name} ({(pet.category as string).charAt(0).toUpperCase() + (pet.category as string).slice(1)})</TableCell>
                             <TableCell>{requester.name}</TableCell>
-                            <TableCell>{new Date(adoption.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell>{new Date(typedAdoption.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>
                               <span className={`px-2 py-1 rounded-full text-xs ${
-                                adoption.status === "approved" 
+                                typedAdoption.status === "approved" 
                                   ? "bg-green-100 text-green-800" 
-                                  : adoption.status === "rejected" 
+                                  : typedAdoption.status === "rejected" 
                                     ? "bg-red-100 text-red-800"
                                     : "bg-yellow-100 text-yellow-800"
                               }`}>
-                                {adoption.status.charAt(0).toUpperCase() + adoption.status.slice(1)}
+                                {typedAdoption.status.charAt(0).toUpperCase() + typedAdoption.status.slice(1)}
                               </span>
                             </TableCell>
                             <TableCell>
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => viewAdoptionDetails(adoption)}
+                                onClick={() => viewAdoptionDetails(typedAdoption)}
                               >
                                 Review
                               </Button>
