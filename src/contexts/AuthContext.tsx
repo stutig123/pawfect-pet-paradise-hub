@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Role, AuthState } from "@/lib/types";
 import users from "@/lib/data/users.json";
@@ -64,12 +65,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Invalid email or password");
       }
 
+      // Cast the user.role to Role type to ensure type safety
+      const typedUser: User = {
+        ...user,
+        role: user.role as Role
+      };
+
       // Store user in localStorage for persistence
-      localStorage.setItem("petstore-user", JSON.stringify(user));
+      localStorage.setItem("petstore-user", JSON.stringify(typedUser));
 
       setAuthState({
         isAuthenticated: true,
-        user,
+        user: typedUser,
         isLoading: false,
         error: null,
       });
