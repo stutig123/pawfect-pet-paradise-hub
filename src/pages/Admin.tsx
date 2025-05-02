@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { Navigate, Link } from "react-router-dom";
@@ -28,7 +27,13 @@ const Admin = () => {
   // Load data on component mount and when refresh is triggered
   useEffect(() => {
     // Make copies of the data to ensure reactivity
-    setLocalAdoptionRequests([...adoptionRequestsData]);
+    // Cast the adoption requests to the correct type
+    const typedAdoptionRequests = adoptionRequestsData.map(adoption => ({
+      ...adoption,
+      status: adoption.status as AdoptionStatus
+    }));
+    
+    setLocalAdoptionRequests(typedAdoptionRequests);
     setLocalUsers([...usersData]);
     
     console.log("Admin Dashboard: Data refreshed", {
@@ -54,7 +59,7 @@ const Admin = () => {
     // In a real app, this would update the database
     const adoptionIndex = adoptionRequestsData.findIndex(a => a.id === adoptionId);
     if (adoptionIndex !== -1) {
-      adoptionRequestsData[adoptionIndex].status = "approved";
+      adoptionRequestsData[adoptionIndex].status = "approved" as AdoptionStatus;
       adoptionRequestsData[adoptionIndex].updatedAt = new Date().toISOString();
       
       // Also update the pet status to adopted
@@ -64,8 +69,12 @@ const Admin = () => {
         petsData[petIndex].status = "adopted";
       }
 
-      // Update local state
-      setLocalAdoptionRequests([...adoptionRequestsData]);
+      // Update local state with properly typed data
+      const typedAdoptionRequests = adoptionRequestsData.map(adoption => ({
+        ...adoption,
+        status: adoption.status as AdoptionStatus
+      }));
+      setLocalAdoptionRequests(typedAdoptionRequests);
     }
     
     console.log("Approved adoption:", adoptionId);
@@ -80,11 +89,15 @@ const Admin = () => {
     // In a real app, this would update the database
     const adoptionIndex = adoptionRequestsData.findIndex(a => a.id === adoptionId);
     if (adoptionIndex !== -1) {
-      adoptionRequestsData[adoptionIndex].status = "rejected";
+      adoptionRequestsData[adoptionIndex].status = "rejected" as AdoptionStatus;
       adoptionRequestsData[adoptionIndex].updatedAt = new Date().toISOString();
       
-      // Update local state
-      setLocalAdoptionRequests([...adoptionRequestsData]);
+      // Update local state with properly typed data
+      const typedAdoptionRequests = adoptionRequestsData.map(adoption => ({
+        ...adoption,
+        status: adoption.status as AdoptionStatus
+      }));
+      setLocalAdoptionRequests(typedAdoptionRequests);
     }
     
     console.log("Rejected adoption:", adoptionId);
