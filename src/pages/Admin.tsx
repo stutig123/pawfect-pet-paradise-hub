@@ -6,17 +6,18 @@ import { useState } from "react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AdoptionRequest, AdoptionStatus, Pet, PetCategory, PetStatus, Product } from "@/lib/types";
 import petsData from "@/lib/data/pets.json";
 import productsData from "@/lib/data/products.json";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
 import usersData from "@/lib/data/users.json";
+import ordersData from "@/lib/data/orders.json";
 import { useToast } from "@/components/ui/use-toast";
 
 const Admin = () => {
   const { isAuthenticated, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "pets" | "products" | "adoptions">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "pets" | "products" | "adoptions" | "orders">("dashboard");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentAdoption, setCurrentAdoption] = useState<AdoptionRequest | null>(null);
   const { toast } = useToast();
@@ -28,6 +29,18 @@ const Admin = () => {
 
   const handleApproveAdoption = (adoptionId: string) => {
     // In a real app, this would update the database
+    const adoptionIndex = adoptionRequestsData.findIndex(a => a.id === adoptionId);
+    if (adoptionIndex !== -1) {
+      adoptionRequestsData[adoptionIndex].status = "approved";
+      
+      // Also update the pet status to adopted
+      const petId = adoptionRequestsData[adoptionIndex].petId;
+      const petIndex = petsData.findIndex(p => p.id === petId);
+      if (petIndex !== -1) {
+        petsData[petIndex].status = "adopted";
+      }
+    }
+    
     console.log("Approved adoption:", adoptionId);
     toast({
       title: "Adoption Approved",
@@ -38,6 +51,11 @@ const Admin = () => {
 
   const handleRejectAdoption = (adoptionId: string) => {
     // In a real app, this would update the database
+    const adoptionIndex = adoptionRequestsData.findIndex(a => a.id === adoptionId);
+    if (adoptionIndex !== -1) {
+      adoptionRequestsData[adoptionIndex].status = "rejected";
+    }
+    
     console.log("Rejected adoption:", adoptionId);
     toast({
       title: "Adoption Rejected",
@@ -78,6 +96,20 @@ const Admin = () => {
   // Find user details
   const getUserDetails = (userId: string) => {
     return usersData.find(u => u.id === userId) || { name: "Unknown User", email: "unknown@example.com" };
+  };
+
+  const updateOrderStatus = (orderId: string, newStatus: "processing" | "delivered" | "cancelled") => {
+    // In a real app, this would update the database
+    const orderIndex = ordersData.findIndex(o => o.id === orderId);
+    if (orderIndex !== -1) {
+      ordersData[orderIndex].status = newStatus;
+      ordersData[orderIndex].updatedAt = new Date().toISOString();
+      
+      toast({
+        title: "Order Updated",
+        description: `Order status changed to ${newStatus}.`,
+      });
+    }
   };
 
   return (
@@ -121,6 +153,13 @@ const Admin = () => {
             className="whitespace-nowrap"
           >
             Adoption Requests
+          </Button>
+          <Button 
+            variant={activeTab === "orders" ? "default" : "outline"} 
+            onClick={() => setActiveTab("orders")}
+            className="whitespace-nowrap"
+          >
+            Orders
           </Button>
         </div>
 
@@ -174,6 +213,40 @@ const Admin = () => {
                   onClick={() => setActiveTab("users")}
                 >
                   Manage Users
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="text-xl font-display">Orders Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-2">Manage customer orders.</p>
+                <p className="text-sm text-gray-500">{ordersData.length} orders placed</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4 w-full"
+                  onClick={() => setActiveTab("orders")}
+                >
+                  Manage Orders
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="text-xl font-display">Adoption Requests</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-2">Review and manage adoption requests.</p>
+                <p className="text-sm text-gray-500">{adoptionRequestsData.filter(a => a.status === 'pending').length} pending requests</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4 w-full"
+                  onClick={() => setActiveTab("adoptions")}
+                >
+                  Review Requests
                 </Button>
               </CardContent>
             </Card>
@@ -309,6 +382,104 @@ const Admin = () => {
           </Card>
         )}
 
+        {/* Orders Tab */}
+        {activeTab === "orders" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-display">Orders Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ordersData.length > 0 ? (
+                      ordersData.map((order) => {
+                        const customer = getUserDetails(order.userId);
+                        
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell>#{order.id.substring(4, 12)}</TableCell>
+                            <TableCell>{customer.name}</TableCell>
+                            <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell>₹{order.total.toLocaleString()}</TableCell>
+                            <TableCell>
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                order.status === "delivered" 
+                                  ? "bg-green-100 text-green-800" 
+                                  : order.status === "cancelled" 
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                              }`}>
+                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                {order.status === "processing" && (
+                                  <>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => updateOrderStatus(order.id, "delivered")}
+                                    >
+                                      Mark Delivered
+                                    </Button>
+                                    <Button 
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => updateOrderStatus(order.id, "cancelled")}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </>
+                                )}
+                                {order.status === "delivered" && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    disabled
+                                  >
+                                    Delivered
+                                  </Button>
+                                )}
+                                {order.status === "cancelled" && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    disabled
+                                  >
+                                    Cancelled
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-6 text-gray-500">
+                          No orders yet
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Adoption Requests Tab */}
         {activeTab === "adoptions" && (
           <Card>
@@ -386,6 +557,9 @@ const Admin = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Adoption Request Details</DialogTitle>
+              <DialogDescription>
+                Review the details of this adoption request and take appropriate action.
+              </DialogDescription>
             </DialogHeader>
             
             {currentAdoption && (

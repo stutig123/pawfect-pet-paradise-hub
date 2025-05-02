@@ -38,7 +38,7 @@ const Login = () => {
       if (user.role === "admin") {
         navigate("/admin");
       } else {
-        navigate("/");
+        navigate("/dashboard"); // Send regular users to their dashboard
       }
     } catch (error) {
       toast({

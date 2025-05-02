@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import ordersData from "@/lib/data/orders.json";
 
 const Checkout = () => {
   const { cart, clearCart } = useCart();
@@ -44,7 +45,12 @@ const Checkout = () => {
         updatedAt: new Date().toISOString()
       };
       
+      // In a real application, this would be an API call to save the order
+      // For now, we'll log it and update the orders.json
       console.log("Order created:", order);
+      
+      // Add the order to the orders array (in memory)
+      ordersData.push(order);
       
       // Clear the cart
       clearCart();
@@ -62,6 +68,12 @@ const Checkout = () => {
       });
     }, 1500);
   };
+
+  // Calculate taxes, shipping, and total
+  const subtotal = cart.total;
+  const taxes = parseFloat((cart.total * 0.18).toFixed(2));
+  const shipping = subtotal > 0 ? 100 : 0;
+  const total = subtotal + taxes + shipping;
 
   return (
     <Layout>
@@ -121,20 +133,20 @@ const Checkout = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₹{cart.total.toLocaleString()}</span>
+                  <span>₹{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Taxes</span>
-                  <span>₹{(cart.total * 0.18).toFixed(2)}</span>
+                  <span>₹{taxes.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>₹{cart.total > 0 ? '100.00' : '0.00'}</span>
+                  <span>₹{shipping.toLocaleString()}</span>
                 </div>
                 <div className="border-t pt-4">
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>₹{(cart.total + cart.total * 0.18 + 100).toLocaleString()}</span>
+                    <span>₹{total.toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>

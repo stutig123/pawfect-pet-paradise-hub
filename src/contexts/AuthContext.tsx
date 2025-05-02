@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Role, AuthState } from "@/lib/types";
 import users from "@/lib/data/users.json";
@@ -112,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: new Date().toISOString(),
       };
 
-      // Add user to users array (in real app, this would save to the server)
+      // Add user to users array (in memory - in a real app, this would save to the server)
       users.push(newUser);
 
       // Store user in localStorage for persistence
@@ -125,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error: null,
       });
       
+      console.log("New user registered:", newUser);
       return newUser;
     } catch (error) {
       console.error("Registration error:", error);
@@ -148,11 +150,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateUser = (updatedUser: User) => {
+    // Update the user in the local state
     setAuthState((prev) => ({
       ...prev,
       user: updatedUser,
     }));
+
+    // Update the user in localStorage
     localStorage.setItem("petstore-user", JSON.stringify(updatedUser));
+    
+    // In a real app, you would also update the user in your database
+    // For now, we'll just update the user in the users array (in memory)
+    const userIndex = users.findIndex(u => u.id === updatedUser.id);
+    if (userIndex !== -1) {
+      users[userIndex] = updatedUser;
+    }
   };
 
   return (

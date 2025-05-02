@@ -32,7 +32,7 @@ const UserDashboard = () => {
         .filter(order => order.userId === user.id)
         .map(order => ({
           ...order,
-          status: order.status
+          status: order.status as "processing" | "delivered" | "cancelled"
         }));
       setUserOrders(filteredOrders);
 
@@ -119,7 +119,7 @@ const UserDashboard = () => {
                       <TableBody>
                         {userOrders.map((order) => (
                           <TableRow key={order.id}>
-                            <TableCell className="font-medium">#{order.id.substring(0, 8)}</TableCell>
+                            <TableCell className="font-medium">#{order.id.substring(4, 12)}</TableCell>
                             <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>{order.items.length} items</TableCell>
                             <TableCell>₹{order.total.toLocaleString()}</TableCell>

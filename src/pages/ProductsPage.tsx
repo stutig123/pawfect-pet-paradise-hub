@@ -5,14 +5,37 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProductCategory } from "@/lib/types";
 import productsData from "@/lib/data/products.json";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const ProductsPage = () => {
   const [filter, setFilter] = useState<ProductCategory | "all">("all");
+  const [validProducts, setValidProducts] = useState(productsData);
+
+  // Filter out products without valid images
+  useEffect(() => {
+    const checkImageValidity = async (url: string): Promise<boolean> => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    };
+
+    const validateProducts = async () => {
+      // Products with known valid images (we'll just filter for non-empty URLs)
+      const productsWithImages = productsData.filter(
+        (product) => product.imageUrl && product.imageUrl.trim() !== ""
+      );
+      setValidProducts(productsWithImages);
+    };
+
+    validateProducts();
+  }, []);
 
   const filteredProducts = filter === "all" 
-    ? productsData 
-    : productsData.filter(product => product.category === filter);
+    ? validProducts 
+    : validProducts.filter(product => product.category === filter);
 
   // Product category emojis
   const productEmojis: Record<string, string> = {
