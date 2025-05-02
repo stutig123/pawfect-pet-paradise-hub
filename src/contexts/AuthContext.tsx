@@ -25,7 +25,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Initialize localUsers from the users.json file on mount
-    setLocalUsers([...users]);
+    // Cast each user's role to Role type to ensure type safety
+    const typedUsers = users.map(user => ({
+      ...user,
+      role: user.role as Role
+    }));
+    
+    setLocalUsers(typedUsers);
     
     // Check for existing session
     const storedUser = localStorage.getItem("petstore-user");
@@ -71,23 +77,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Invalid email or password");
       }
 
-      // Cast the user.role to Role type to ensure type safety
-      const typedUser: User = {
-        ...user,
-        role: user.role as Role
-      };
-
       // Store user in localStorage for persistence
-      localStorage.setItem("petstore-user", JSON.stringify(typedUser));
+      localStorage.setItem("petstore-user", JSON.stringify(user));
 
       setAuthState({
         isAuthenticated: true,
-        user: typedUser,
+        user: user,
         isLoading: false,
         error: null,
       });
       
-      return typedUser;
+      return user;
     } catch (error) {
       console.error("Login error:", error);
       setAuthState((prev) => ({
