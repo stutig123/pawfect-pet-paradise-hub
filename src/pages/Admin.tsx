@@ -2,7 +2,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { Navigate, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,18 +20,42 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "pets" | "products" | "adoptions" | "orders">("dashboard");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentAdoption, setCurrentAdoption] = useState<AdoptionRequest | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger
+  const [localAdoptionRequests, setLocalAdoptionRequests] = useState<AdoptionRequest[]>([]);
+  const [localUsers, setLocalUsers] = useState<any[]>([]);
   const { toast } = useToast();
+
+  // Load data on component mount and when refresh is triggered
+  useEffect(() => {
+    // Make copies of the data to ensure reactivity
+    setLocalAdoptionRequests([...adoptionRequestsData]);
+    setLocalUsers([...usersData]);
+    
+    console.log("Admin Dashboard: Data refreshed", {
+      adoptions: adoptionRequestsData.length,
+      users: usersData.length
+    });
+  }, [refreshTrigger]);
 
   // Redirect if not authenticated or not an admin
   if (!isAuthenticated || user?.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 
+  const refreshData = () => {
+    setRefreshTrigger(prev => prev + 1);
+    toast({
+      title: "Data Refreshed",
+      description: "Dashboard data has been updated."
+    });
+  };
+
   const handleApproveAdoption = (adoptionId: string) => {
     // In a real app, this would update the database
     const adoptionIndex = adoptionRequestsData.findIndex(a => a.id === adoptionId);
     if (adoptionIndex !== -1) {
       adoptionRequestsData[adoptionIndex].status = "approved";
+      adoptionRequestsData[adoptionIndex].updatedAt = new Date().toISOString();
       
       // Also update the pet status to adopted
       const petId = adoptionRequestsData[adoptionIndex].petId;
@@ -39,6 +63,9 @@ const Admin = () => {
       if (petIndex !== -1) {
         petsData[petIndex].status = "adopted";
       }
+
+      // Update local state
+      setLocalAdoptionRequests([...adoptionRequestsData]);
     }
     
     console.log("Approved adoption:", adoptionId);
@@ -54,6 +81,10 @@ const Admin = () => {
     const adoptionIndex = adoptionRequestsData.findIndex(a => a.id === adoptionId);
     if (adoptionIndex !== -1) {
       adoptionRequestsData[adoptionIndex].status = "rejected";
+      adoptionRequestsData[adoptionIndex].updatedAt = new Date().toISOString();
+      
+      // Update local state
+      setLocalAdoptionRequests([...adoptionRequestsData]);
     }
     
     console.log("Rejected adoption:", adoptionId);
@@ -109,13 +140,21 @@ const Admin = () => {
         title: "Order Updated",
         description: `Order status changed to ${newStatus}.`,
       });
+      
+      // Refresh the data after updating
+      setRefreshTrigger(prev => prev + 1);
     }
   };
 
   return (
     <Layout>
       <div className="container mx-auto py-10 px-4">
-        <h1 className="text-3xl md:text-4xl font-display font-bold mb-6">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-display font-bold">Admin Dashboard</h1>
+          <Button onClick={refreshData} variant="outline" className="flex items-center gap-2">
+            Refresh Data
+          </Button>
+        </div>
         
         {/* Admin Navigation */}
         <div className="flex overflow-x-auto mb-6 gap-2 pb-2">
@@ -206,7 +245,7 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-2">Manage user accounts and permissions.</p>
-                <p className="text-sm text-gray-500">{usersData.length} registered users</p>
+                <p className="text-sm text-gray-500">{localUsers.length} registered users</p>
                 <Button 
                   variant="outline" 
                   className="mt-4 w-full"
@@ -240,7 +279,7 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-2">Review and manage adoption requests.</p>
-                <p className="text-sm text-gray-500">{adoptionRequestsData.filter(a => a.status === 'pending').length} pending requests</p>
+                <p className="text-sm text-gray-500">{localAdoptionRequests.filter(a => a.status === 'pending').length} pending requests</p>
                 <Button 
                   variant="outline" 
                   className="mt-4 w-full"
@@ -271,7 +310,7 @@ const Admin = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {usersData.map((user) => (
+                    {localUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.name}</TableCell>
                         <TableCell>{user.email}</TableCell>
@@ -500,8 +539,8 @@ const Admin = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {adoptionRequestsData.length > 0 ? (
-                      adoptionRequestsData.map((adoption) => {
+                    {localAdoptionRequests.length > 0 ? (
+                      localAdoptionRequests.map((adoption) => {
                         const typedAdoption = {
                           ...adoption,
                           status: adoption.status as AdoptionStatus

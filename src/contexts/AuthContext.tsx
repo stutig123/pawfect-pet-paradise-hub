@@ -103,9 +103,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("User with this email already exists");
       }
 
+      // Generate unique ID with timestamp to ensure uniqueness
+      const uniqueId = `user-${Math.random().toString(36).substr(2, 9)}`;
+      
       // In a real app, this would be an API call
       const newUser: User = {
-        id: `user-${Math.random().toString(36).substr(2, 9)}`,
+        id: uniqueId,
         name,
         email,
         password,
@@ -160,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("petstore-user", JSON.stringify(updatedUser));
     
     // In a real app, you would also update the user in your database
-    // For now, we'll just update the user in the users array (in memory)
+    // Update the user in the users array (in memory)
     const userIndex = users.findIndex(u => u.id === updatedUser.id);
     if (userIndex !== -1) {
       users[userIndex] = updatedUser;

@@ -24,6 +24,7 @@ import AdoptionPage from "./pages/AdoptionPage";
 import ContactPage from "./pages/ContactPage";
 import Cart from "./pages/Cart";
 import UserDashboard from "./pages/UserDashboard";
+import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/admin" element={<Admin />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/payment" element={<Payment />} />
               <Route path="/order-confirmation" element={<OrderConfirmation />} />
