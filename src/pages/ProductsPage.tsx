@@ -23,11 +23,20 @@ const ProductsPage = () => {
     };
 
     const validateProducts = async () => {
-      // Products with known valid images (we'll just filter for non-empty URLs)
-      const productsWithImages = productsData.filter(
-        (product) => product.imageUrl && product.imageUrl.trim() !== ""
-      );
-      setValidProducts(productsWithImages);
+      const validProductsList = [];
+      
+      for (const product of productsData) {
+        if (product.imageUrl && product.imageUrl.trim() !== "") {
+          // Basic validation - check if URL is not empty
+          const isValid = await checkImageValidity(product.imageUrl);
+          if (isValid) {
+            validProductsList.push(product);
+          }
+        }
+      }
+      
+      setValidProducts(validProductsList);
+      console.log(`Filtered out ${productsData.length - validProductsList.length} products with invalid images`);
     };
 
     validateProducts();
@@ -112,6 +121,10 @@ const ProductsPage = () => {
                   src={product.imageUrl}
                   alt={product.name}
                   className="w-full h-full object-cover transition-transform hover:scale-105"
+                  onError={(e) => {
+                    // Backup error handler in case the filtering missed something
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
                 />
               </div>
               <CardContent className="pt-6">

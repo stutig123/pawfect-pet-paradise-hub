@@ -20,7 +20,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     error: null,
   });
 
+  // Use a local copy of users that persists between rerenders
+  const [localUsers, setLocalUsers] = useState<User[]>([]);
+
   useEffect(() => {
+    // Initialize localUsers from the users.json file on mount
+    setLocalUsers([...users]);
+    
     // Check for existing session
     const storedUser = localStorage.getItem("petstore-user");
     if (storedUser) {
@@ -56,8 +62,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      // In a real app, this would be an API call
-      const user = users.find(
+      // Search in the localUsers array instead of users from the import
+      const user = localUsers.find(
         (u) => u.email === email && u.password === password
       );
 
@@ -97,8 +103,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      // Check if user already exists
-      const userExists = users.some((u) => u.email === email);
+      // Check if user already exists in localUsers
+      const userExists = localUsers.some((u) => u.email === email);
       if (userExists) {
         throw new Error("User with this email already exists");
       }
@@ -106,18 +112,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Generate unique ID with timestamp to ensure uniqueness
       const uniqueId = `user-${Math.random().toString(36).substr(2, 9)}`;
       
-      // In a real app, this would be an API call
       const newUser: User = {
         id: uniqueId,
         name,
         email,
         password,
-        role: "user" as Role, // Explicitly cast to Role type
+        role: "user" as Role,
         createdAt: new Date().toISOString(),
       };
 
-      // Add user to users array (in memory - in a real app, this would save to the server)
-      users.push(newUser);
+      // Add user to localUsers array
+      const updatedUsers = [...localUsers, newUser];
+      setLocalUsers(updatedUsers);
 
       // Store user in localStorage for persistence
       localStorage.setItem("petstore-user", JSON.stringify(newUser));
@@ -130,6 +136,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       console.log("New user registered:", newUser);
+      console.log("Updated users list:", updatedUsers);
+      
       return newUser;
     } catch (error) {
       console.error("Registration error:", error);
@@ -162,12 +170,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Update the user in localStorage
     localStorage.setItem("petstore-user", JSON.stringify(updatedUser));
     
-    // In a real app, you would also update the user in your database
-    // Update the user in the users array (in memory)
-    const userIndex = users.findIndex(u => u.id === updatedUser.id);
-    if (userIndex !== -1) {
-      users[userIndex] = updatedUser;
-    }
+    // Update the user in the localUsers array
+    const updatedUsers = localUsers.map(u => 
+      u.id === updatedUser.id ? updatedUser : u
+    );
+    setLocalUsers(updatedUsers);
   };
 
   return (

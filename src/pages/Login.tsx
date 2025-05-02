@@ -29,6 +29,8 @@ const Login = () => {
 
     try {
       const user = await login(email, password);
+      console.log("Login successful:", user);
+      
       toast({
         title: "Login successful!",
         description: "Welcome to PawfectPets!",
@@ -41,6 +43,7 @@ const Login = () => {
         navigate("/dashboard"); // Send regular users to their dashboard
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error instanceof Error ? error.message : "Unknown error occurred",

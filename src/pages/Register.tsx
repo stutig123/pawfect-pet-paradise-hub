@@ -40,14 +40,17 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await register(name, email, password);
+      const newUser = await register(name, email, password);
+      console.log("Registration successful, created user:", newUser);
+      
       toast({
         title: "Registration successful!",
-        description: "Your account has been created. Please login.",
+        description: "Your account has been created. You can now log in.",
       });
       // Redirect to login page after successful registration
       navigate("/login");
     } catch (error) {
+      console.error("Registration error:", error);
       toast({
         title: "Registration failed",
         description: error instanceof Error ? error.message : "Unknown error occurred",
