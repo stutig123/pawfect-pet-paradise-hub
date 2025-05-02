@@ -29,51 +29,49 @@ const Checkout = () => {
     return null;
   }
 
-  const handleCheckout = () => {
-    setLoading(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      // Create an order object (in a real app, this would be saved to a database)
-      const order = {
-        id: `ORD-${Math.random().toString(36).substr(2, 9)}`,
-        userId: user!.id,
-        items: cart.items,
-        total: cart.total,
-        status: "processing",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      // In a real application, this would be an API call to save the order
-      // For now, we'll log it and update the orders.json
-      console.log("Order created:", order);
-      
-      // Add the order to the orders array (in memory)
-      ordersData.push(order);
-      
-      // Clear the cart
-      clearCart();
-      
-      // Show success message
-      toast({
-        title: "Order Placed!",
-        description: "Your order has been successfully placed.",
-      });
-      
-      // Navigate to order confirmation
-      navigate("/order-confirmation", { 
-        state: { orderId: order.id },
-        replace: true 
-      });
-    }, 1500);
-  };
-
   // Calculate taxes, shipping, and total
   const subtotal = cart.total;
   const taxes = parseFloat((cart.total * 0.18).toFixed(2));
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal + taxes + shipping;
+
+  const handleCheckout = () => {
+    setLoading(true);
+    
+    // Create an order object
+    const order = {
+      id: `ORD-${Math.random().toString(36).substr(2, 9)}`,
+      userId: user!.id,
+      items: cart.items,
+      total: total,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Add the order to the orders array (in memory)
+    ordersData.push(order);
+    
+    toast({
+      title: "Order Created",
+      description: "Proceeding to payment...",
+    });
+    
+    // Navigate to payment page with order details
+    setTimeout(() => {
+      navigate("/payment", { 
+        state: { 
+          orderDetails: {
+            orderId: order.id,
+            subtotal,
+            taxes,
+            shipping,
+            total
+          }
+        }
+      });
+    }, 500);
+  };
 
   return (
     <Layout>
@@ -156,7 +154,7 @@ const Checkout = () => {
                   onClick={handleCheckout}
                   disabled={loading}
                 >
-                  {loading ? "Processing..." : "Place Order"}
+                  {loading ? "Processing..." : "Proceed to Payment"}
                 </Button>
               </CardFooter>
             </Card>

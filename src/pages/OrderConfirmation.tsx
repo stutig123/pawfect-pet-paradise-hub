@@ -24,7 +24,16 @@ const OrderConfirmation = () => {
     // Find the order in the orders data
     const foundOrder = ordersData.find(o => o.id === orderId);
     if (foundOrder) {
-      setOrder(foundOrder);
+      // Update order status to processing since payment was successful
+      const orderIndex = ordersData.findIndex(o => o.id === orderId);
+      if (orderIndex !== -1) {
+        ordersData[orderIndex].status = "processing";
+        ordersData[orderIndex].updatedAt = new Date().toISOString();
+        setOrder(ordersData[orderIndex]);
+        console.log("Order status updated to processing:", ordersData[orderIndex]);
+      } else {
+        setOrder(foundOrder);
+      }
     }
   }, [orderId, navigate]);
 

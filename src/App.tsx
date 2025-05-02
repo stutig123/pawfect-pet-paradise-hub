@@ -16,6 +16,7 @@ import PetDetails from "./pages/PetDetails";
 import ProductDetails from "./pages/ProductDetails";
 import Admin from "./pages/Admin";
 import Checkout from "./pages/Checkout";
+import Payment from "./pages/Payment";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import PetsPage from "./pages/PetsPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/cart" element={<Cart />} />
               <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment" element={<Payment />} />
               <Route path="/order-confirmation" element={<OrderConfirmation />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

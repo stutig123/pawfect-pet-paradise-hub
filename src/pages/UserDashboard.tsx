@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Order, AdoptionRequest, AdoptionStatus, PetStatus, PetCategory } from "@/lib/types";
+import { Order, AdoptionRequest, AdoptionStatus, PetCategory, Pet, PetStatus } from "@/lib/types";
 import ordersData from "@/lib/data/orders.json";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
 import petsData from "@/lib/data/pets.json";
@@ -17,6 +17,7 @@ const UserDashboard = () => {
   const navigate = useNavigate();
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [userAdoptions, setUserAdoptions] = useState<AdoptionRequest[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // To trigger refreshes
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -30,15 +31,17 @@ const UserDashboard = () => {
       // Filter orders for this user
       const filteredOrders = ordersData
         .filter(order => order.userId === user.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Most recent first
         .map(order => ({
           ...order,
-          status: order.status as "processing" | "delivered" | "cancelled"
+          status: order.status as "pending" | "processing" | "delivered" | "cancelled"
         }));
       setUserOrders(filteredOrders);
 
       // Filter adoption requests for this user and ensure they have the correct typing
       const filteredAdoptions = adoptionRequestsData
         .filter(adoption => adoption.userId === user.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Most recent first
         .map(adoption => ({
           ...adoption,
           status: adoption.status as AdoptionStatus
@@ -51,12 +54,41 @@ const UserDashboard = () => {
         adoptions: filteredAdoptions.length
       });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, refreshTrigger]); // Added refreshTrigger
+
+  // Function to manually refresh data
+  const refreshData = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   // Get pet name by ID
   const getPetName = (petId: string): string => {
     const pet = petsData.find(p => p.id === petId);
     return pet ? pet.name : "Unknown Pet";
+  };
+
+  // Get pet details by ID
+  const getPetDetails = (petId: string): Pet => {
+    const pet = petsData.find(pet => pet.id === petId);
+    if (pet) {
+      return {
+        ...pet,
+        category: pet.category as PetCategory,
+        status: pet.status as PetStatus
+      };
+    }
+    return { 
+      id: "unknown", 
+      name: "Unknown Pet", 
+      category: "other" as PetCategory,
+      breed: "",
+      age: 0,
+      price: 0,
+      description: "",
+      imageUrl: "",
+      status: "available" as PetStatus,
+      addedAt: new Date().toISOString()
+    };
   };
 
   if (!isAuthenticated || !user) {
@@ -66,7 +98,10 @@ const UserDashboard = () => {
   return (
     <Layout>
       <div className="container mx-auto py-10 px-4">
-        <h1 className="text-3xl md:text-4xl font-display font-bold mb-6">My Dashboard</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-display font-bold">My Dashboard</h1>
+          <Button onClick={refreshData} variant="outline">Refresh Data</Button>
+        </div>
         
         <div className="mb-8">
           <Card>
@@ -94,8 +129,8 @@ const UserDashboard = () => {
         
         <Tabs defaultValue="orders" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="orders">My Orders</TabsTrigger>
-            <TabsTrigger value="adoptions">Adoption Requests</TabsTrigger>
+            <TabsTrigger value="orders">My Orders ({userOrders.length})</TabsTrigger>
+            <TabsTrigger value="adoptions">Adoption Requests ({userAdoptions.length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="orders">
@@ -129,7 +164,9 @@ const UserDashboard = () => {
                                   ? "bg-green-100 text-green-800" 
                                   : order.status === "cancelled" 
                                     ? "bg-red-100 text-red-800"
-                                    : "bg-yellow-100 text-yellow-800"
+                                    : order.status === "processing"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-yellow-100 text-yellow-800"
                               }`}>
                                 {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                               </span>
@@ -169,24 +206,38 @@ const UserDashboard = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {userAdoptions.map((adoption) => (
-                          <TableRow key={adoption.id}>
-                            <TableCell className="font-medium">#{adoption.id.substring(0, 8)}</TableCell>
-                            <TableCell>{getPetName(adoption.petId)}</TableCell>
-                            <TableCell>{new Date(adoption.createdAt).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                adoption.status === "approved" 
-                                  ? "bg-green-100 text-green-800" 
-                                  : adoption.status === "rejected" 
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                              }`}>
-                                {adoption.status.charAt(0).toUpperCase() + adoption.status.slice(1)}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {userAdoptions.map((adoption) => {
+                          const petDetails = getPetDetails(adoption.petId);
+                          return (
+                            <TableRow key={adoption.id}>
+                              <TableCell className="font-medium">#{adoption.id.substring(0, 8)}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  {petDetails.imageUrl && (
+                                    <img 
+                                      src={petDetails.imageUrl} 
+                                      alt={petDetails.name}
+                                      className="w-8 h-8 object-cover rounded"
+                                    />
+                                  )}
+                                  <span>{petDetails.name}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>{new Date(adoption.createdAt).toLocaleDateString()}</TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  adoption.status === "approved" 
+                                    ? "bg-green-100 text-green-800" 
+                                    : adoption.status === "rejected" 
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                }`}>
+                                  {adoption.status.charAt(0).toUpperCase() + adoption.status.slice(1)}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </div>
