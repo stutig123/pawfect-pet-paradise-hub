@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -7,12 +6,14 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { CheckIcon } from "lucide-react";
 import ordersData from "@/lib/data/orders.json";
 import { Order } from "@/lib/types";
+import { useCart } from "@/contexts/CartContext";
 
 const OrderConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const orderId = location.state?.orderId;
   const [order, setOrder] = useState<Order | null>(null);
+  const { clearCart } = useCart();
   
   useEffect(() => {
     // Redirect if no order ID in state
@@ -31,11 +32,14 @@ const OrderConfirmation = () => {
         ordersData[orderIndex].updatedAt = new Date().toISOString();
         setOrder(ordersData[orderIndex]);
         console.log("Order status updated to processing:", ordersData[orderIndex]);
+        
+        // Clear the cart after successful order
+        clearCart();
       } else {
         setOrder(foundOrder);
       }
     }
-  }, [orderId, navigate]);
+  }, [orderId, navigate, clearCart]);
 
   if (!orderId) return null;
 

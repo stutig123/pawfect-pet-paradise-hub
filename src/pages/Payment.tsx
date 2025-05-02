@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { CreditCard } from "lucide-react";
+import { CreditCard, Truck, CreditCardIcon } from "lucide-react";
 
 const Payment = () => {
   const location = useLocation();
@@ -23,6 +24,7 @@ const Payment = () => {
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCVV] = useState("");
   const [nameOnCard, setNameOnCard] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "cod">("card");
 
   useEffect(() => {
     // Redirect if not authenticated or no order details
@@ -60,15 +62,17 @@ const Payment = () => {
     e.preventDefault();
     setLoading(true);
     
-    // Validate form fields
-    if (!cardNumber || !expiryDate || !cvv || !nameOnCard) {
-      toast({
-        title: "Error",
-        description: "Please fill out all fields",
-        variant: "destructive"
-      });
-      setLoading(false);
-      return;
+    if (paymentMethod === "card") {
+      // Validate card form fields
+      if (!cardNumber || !expiryDate || !cvv || !nameOnCard) {
+        toast({
+          title: "Error",
+          description: "Please fill out all card details",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
     }
     
     // Simulate payment processing
@@ -76,7 +80,9 @@ const Payment = () => {
       setLoading(false);
       toast({
         title: "Payment Successful!",
-        description: "Your payment has been processed successfully."
+        description: paymentMethod === "card" 
+          ? "Your card payment has been processed successfully." 
+          : "Your order has been placed successfully with cash on delivery."
       });
       
       // Navigate to order confirmation with the order ID
@@ -98,69 +104,101 @@ const Payment = () => {
           <div className="md:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  <span>Card Details</span>
-                </CardTitle>
+                <CardTitle className="text-xl mb-2">Payment Method</CardTitle>
+                <RadioGroup 
+                  defaultValue="card" 
+                  className="flex flex-col space-y-2"
+                  value={paymentMethod}
+                  onValueChange={(value) => setPaymentMethod(value as "card" | "cod")}
+                >
+                  <div className="flex items-center space-x-2 border p-3 rounded-md">
+                    <RadioGroupItem value="card" id="card" />
+                    <Label htmlFor="card" className="flex items-center gap-2 cursor-pointer">
+                      <CreditCardIcon className="h-4 w-4" />
+                      <span>Credit/Debit Card</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border p-3 rounded-md">
+                    <RadioGroupItem value="cod" id="cod" />
+                    <Label htmlFor="cod" className="flex items-center gap-2 cursor-pointer">
+                      <Truck className="h-4 w-4" />
+                      <span>Cash on Delivery</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nameOnCard">Name on Card</Label>
-                    <Input 
-                      id="nameOnCard"
-                      value={nameOnCard}
-                      onChange={(e) => setNameOnCard(e.target.value)}
-                      placeholder="John Doe"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input 
-                      id="cardNumber"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      placeholder="1234 5678 9012 3456"
-                      maxLength={19}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
+                {paymentMethod === "card" ? (
+                  <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="expiryDate">Expiry Date</Label>
+                      <Label htmlFor="nameOnCard">Name on Card</Label>
                       <Input 
-                        id="expiryDate"
-                        value={expiryDate}
-                        onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                        placeholder="MM/YY"
-                        maxLength={5}
-                        required
+                        id="nameOnCard"
+                        value={nameOnCard}
+                        onChange={(e) => setNameOnCard(e.target.value)}
+                        placeholder="John Doe"
                       />
                     </div>
+                    
                     <div className="space-y-2">
-                      <Label htmlFor="cvv">CVV</Label>
+                      <Label htmlFor="cardNumber">Card Number</Label>
                       <Input 
-                        id="cvv"
-                        value={cvv}
-                        onChange={(e) => setCVV(e.target.value.replace(/\D/g, '').substring(0, 3))}
-                        placeholder="123"
-                        maxLength={3}
-                        required
+                        id="cardNumber"
+                        value={cardNumber}
+                        onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                        placeholder="1234 5678 9012 3456"
+                        maxLength={19}
                       />
                     </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="expiryDate">Expiry Date</Label>
+                        <Input 
+                          id="expiryDate"
+                          value={expiryDate}
+                          onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
+                          placeholder="MM/YY"
+                          maxLength={5}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cvv">CVV</Label>
+                        <Input 
+                          id="cvv"
+                          value={cvv}
+                          onChange={(e) => setCVV(e.target.value.replace(/\D/g, '').substring(0, 3))}
+                          placeholder="123"
+                          maxLength={3}
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="submit"
+                      className="w-full bg-pet-purple hover:bg-pet-darkPurple mt-4"
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : "Pay Now"}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="border-t border-b py-4">
+                      <h3 className="font-medium mb-2">Cash on Delivery Details</h3>
+                      <p className="text-sm text-gray-600">
+                        You'll pay the full amount to the delivery person when your order arrives at your doorstep.
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={handleSubmit}
+                      className="w-full bg-pet-purple hover:bg-pet-darkPurple"
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : "Place Order"}
+                    </Button>
                   </div>
-                  
-                  <Button 
-                    type="submit"
-                    className="w-full bg-pet-purple hover:bg-pet-darkPurple mt-4"
-                    disabled={loading}
-                  >
-                    {loading ? "Processing..." : "Pay Now"}
-                  </Button>
-                </form>
+                )}
               </CardContent>
             </Card>
           </div>

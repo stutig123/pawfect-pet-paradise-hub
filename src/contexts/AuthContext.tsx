@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Role, AuthState } from "@/lib/types";
 import users from "@/lib/data/users.json";
