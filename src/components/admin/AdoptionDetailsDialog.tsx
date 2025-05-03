@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -27,16 +26,11 @@ export function AdoptionDetailsDialog({
   const { toast } = useToast();
 
   const handleApproveAdoption = () => {
-    if (!adoption) return;
+    if (!adoption || !petDetails) return;
     
     try {
-      // Update the adoption status
-      updateAdoptionStatus(adoption.id, "approved");
-      
-      // Also update the pet status to adopted
-      if (petDetails) {
-        updatePetStatus(petDetails.id, "adopted");
-      }
+      // Update the adoption status and pet status together
+      updateAdoptionStatus(adoption.id, "approved", true, petDetails.id);
       
       toast({
         title: "Adoption Approved",
@@ -56,11 +50,11 @@ export function AdoptionDetailsDialog({
   };
 
   const handleRejectAdoption = () => {
-    if (!adoption) return;
+    if (!adoption || !petDetails) return;
     
     try {
-      // Update the adoption status
-      updateAdoptionStatus(adoption.id, "rejected");
+      // Update the adoption status and keep the pet available
+      updateAdoptionStatus(adoption.id, "rejected", true, petDetails.id);
       
       toast({
         title: "Adoption Rejected",

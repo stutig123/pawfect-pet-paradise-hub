@@ -40,6 +40,8 @@ export const updatePetStatus = (petId: string, newStatus: PetStatus): Pet => {
     status: newStatus
   };
   
+  console.log(`Pet ${petId} status updated to: ${newStatus}`);
+  
   // Return the updated pet
   return {
     ...localPets[petIndex],

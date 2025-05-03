@@ -1,6 +1,7 @@
 
 import { AdoptionRequest, AdoptionStatus } from "@/lib/types";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
+import { updatePetStatus } from "@/services/petService";
 
 // Create a local copy that will persist between renders
 let localAdoptionRequests = [...adoptionRequestsData];
@@ -15,7 +16,8 @@ export const getAdoptionRequests = (): AdoptionRequest[] => {
 export const updateAdoptionStatus = (
   adoptionId: string, 
   newStatus: AdoptionStatus,
-  updatePet: boolean = false
+  updatePet: boolean = false,
+  petId?: string
 ): AdoptionRequest => {
   const adoptionIndex = localAdoptionRequests.findIndex(a => a.id === adoptionId);
   
@@ -29,6 +31,11 @@ export const updateAdoptionStatus = (
     status: newStatus,
     updatedAt: new Date().toISOString()
   };
+  
+  // If updatePet is true and petId is provided, also update the pet status
+  if (updatePet && petId) {
+    updatePetStatus(petId, newStatus === "approved" ? "adopted" : "available");
+  }
   
   // Return the updated adoption request
   return {
