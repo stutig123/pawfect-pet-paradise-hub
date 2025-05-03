@@ -47,7 +47,8 @@ const Register = () => {
         title: "Registration successful!",
         description: "Your account has been created. You can now log in.",
       });
-      // Redirect to login page after successful registration
+      
+      // Redirect to login page after successful registration instead of logging in automatically
       navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);

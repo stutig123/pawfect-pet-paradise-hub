@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, Role, AuthState } from "@/lib/types";
 import users from "@/lib/data/users.json";
@@ -124,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUsers = [...localUsers, newUser];
       setLocalUsers(updatedUsers);
 
-      // Store user in localStorage for persistence
+      // Save user to local storage for persistence
       localStorage.setItem("petstore-user", JSON.stringify(newUser));
 
       setAuthState({
