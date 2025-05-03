@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -7,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Order, OrderStatus, AdoptionRequest, AdoptionStatus, PetCategory, Pet, PetStatus, CartItem } from "@/lib/types";
-import ordersData from "@/lib/data/orders.json";
-import adoptionRequestsData from "@/lib/data/adoption_requests.json";
-import petsData from "@/lib/data/pets.json";
+import { Order, OrderStatus, AdoptionRequest, AdoptionStatus, Pet } from "@/lib/types";
 import { useToast } from "@/components/ui/use-toast";
+import { getUserAdoptionRequests } from "@/services/adoptionService";
+import { getPetById } from "@/services/petService";
+import ordersData from "@/lib/data/orders.json";
 
 const UserDashboard = () => {
   const { isAuthenticated, user } = useAuth();
@@ -46,30 +45,30 @@ const UserDashboard = () => {
           items: order.items.map(item => ({
             ...item,
             type: item.type as "product" | "pet"
-          })) as CartItem[]
+          }))
         })) as Order[];
       
       setUserOrders(filteredOrders);
       
-      console.log("Available adoption requests:", adoptionRequestsData);
-      console.log("User ID to filter by:", user.id);
-
-      // Filter adoption requests for this user and ensure they have the correct typing
-      const filteredAdoptions = adoptionRequestsData
-        .filter(adoption => adoption.userId === user.id)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Most recent first
-        .map(adoption => ({
-          ...adoption,
-          status: adoption.status as AdoptionStatus
-        }));
-      setUserAdoptions(filteredAdoptions);
-      
-      console.log("User data loaded:", { 
-        user, 
-        orders: filteredOrders.length,
-        adoptions: filteredAdoptions.length,
-        adoptionsData: filteredAdoptions
-      });
+      // Get user's adoption requests using the service
+      try {
+        const adoptionRequests = getUserAdoptionRequests(user.id);
+        console.log("User adoption requests loaded:", adoptionRequests.length);
+        
+        // Sort by most recent first
+        const sortedAdoptions = [...adoptionRequests].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        
+        setUserAdoptions(sortedAdoptions);
+      } catch (error) {
+        console.error("Error loading adoption requests:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load adoption requests",
+          variant: "destructive"
+        });
+      }
       
       // End loading state
       setLoading(false);
@@ -85,34 +84,10 @@ const UserDashboard = () => {
     });
   };
 
-  // Get pet name by ID
-  const getPetName = (petId: string): string => {
-    const pet = petsData.find(p => p.id === petId);
-    return pet ? pet.name : "Unknown Pet";
-  };
-
   // Get pet details by ID
-  const getPetDetails = (petId: string): Pet => {
-    const pet = petsData.find(pet => pet.id === petId);
-    if (pet) {
-      return {
-        ...pet,
-        category: pet.category as PetCategory,
-        status: pet.status as PetStatus
-      };
-    }
-    return { 
-      id: "unknown", 
-      name: "Unknown Pet", 
-      category: "other" as PetCategory,
-      breed: "",
-      age: 0,
-      price: 0,
-      description: "",
-      imageUrl: "",
-      status: "available" as PetStatus,
-      addedAt: new Date().toISOString()
-    };
+  const getPetDetails = (petId: string): Pet | null => {
+    const pet = getPetById(petId);
+    return pet || null;
   };
 
   if (!isAuthenticated || !user) {
@@ -246,14 +221,14 @@ const UserDashboard = () => {
                                 <TableCell className="font-medium">#{adoption.id.substring(0, 8)}</TableCell>
                                 <TableCell>
                                   <div className="flex items-center gap-2">
-                                    {petDetails.imageUrl && (
+                                    {petDetails?.imageUrl && (
                                       <img 
                                         src={petDetails.imageUrl} 
                                         alt={petDetails.name}
                                         className="w-8 h-8 object-cover rounded"
                                       />
                                     )}
-                                    <span>{petDetails.name}</span>
+                                    <span>{petDetails?.name || "Unknown Pet"}</span>
                                   </div>
                                 </TableCell>
                                 <TableCell>{new Date(adoption.createdAt).toLocaleDateString()}</TableCell>
