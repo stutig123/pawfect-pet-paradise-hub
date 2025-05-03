@@ -1,2 +1,31 @@
 
-[]
+[
+  {
+    "id": "ORD-ydkqyhfr",
+    "userId": "user-01",
+    "items": [
+      {
+        "id": "prod-1",
+        "type": "product",
+        "itemId": "prod-01",
+        "name": "Premium Dog Food",
+        "price": 1890,
+        "quantity": 2,
+        "imageUrl": "/products/dog-food.jpg"
+      },
+      {
+        "id": "prod-2",
+        "type": "product",
+        "itemId": "prod-02",
+        "name": "Cozy Pet Bed (Large)",
+        "price": 3490,
+        "quantity": 1,
+        "imageUrl": "/products/pet-bed.jpg"
+      }
+    ],
+    "total": 7270,
+    "status": "processing",
+    "createdAt": "2025-05-03T00:00:00Z",
+    "updatedAt": "2025-05-03T00:00:00Z"
+  }
+]

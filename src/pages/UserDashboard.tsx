@@ -34,6 +34,8 @@ const UserDashboard = () => {
     
     // Filter orders and adoption requests for this user
     if (user) {
+      console.log("Loading user data for:", user.id);
+      
       // Filter orders for this user
       const filteredOrders = ordersData
         .filter(order => order.userId === user.id)
@@ -43,6 +45,9 @@ const UserDashboard = () => {
           status: order.status as "pending" | "processing" | "delivered" | "cancelled"
         }));
       setUserOrders(filteredOrders);
+      
+      console.log("Available adoption requests:", adoptionRequestsData);
+      console.log("User ID to filter by:", user.id);
 
       // Filter adoption requests for this user and ensure they have the correct typing
       const filteredAdoptions = adoptionRequestsData
@@ -57,7 +62,8 @@ const UserDashboard = () => {
       console.log("User data loaded:", { 
         user, 
         orders: filteredOrders.length,
-        adoptions: filteredAdoptions.length
+        adoptions: filteredAdoptions.length,
+        adoptionsData: filteredAdoptions
       });
       
       // End loading state

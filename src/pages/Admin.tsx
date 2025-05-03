@@ -6,7 +6,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { AdoptionRequest, AdoptionStatus, Pet, PetCategory, PetStatus, Product } from "@/lib/types";
+import { AdoptionRequest, AdoptionStatus, Pet, PetCategory, PetStatus, Product, User } from "@/lib/types";
 import petsData from "@/lib/data/pets.json";
 import productsData from "@/lib/data/products.json";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
@@ -21,7 +21,8 @@ const Admin = () => {
   const [currentAdoption, setCurrentAdoption] = useState<AdoptionRequest | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger
   const [localAdoptionRequests, setLocalAdoptionRequests] = useState<AdoptionRequest[]>([]);
-  const [localUsers, setLocalUsers] = useState<any[]>([]);
+  const [localUsers, setLocalUsers] = useState<User[]>([]);
+  const [localOrders, setLocalOrders] = useState<any[]>([]);
   const { toast } = useToast();
 
   // Load data on component mount and when refresh is triggered
@@ -33,12 +34,20 @@ const Admin = () => {
       status: adoption.status as AdoptionStatus
     }));
     
+    // Cast users to the correct type
+    const typedUsers = usersData.map(user => ({
+      ...user,
+      role: user.role as "admin" | "user"
+    }));
+    
     setLocalAdoptionRequests(typedAdoptionRequests);
-    setLocalUsers([...usersData]);
+    setLocalUsers(typedUsers);
+    setLocalOrders([...ordersData]);
     
     console.log("Admin Dashboard: Data refreshed", {
       adoptions: adoptionRequestsData.length,
-      users: usersData.length
+      users: usersData.length,
+      orders: ordersData.length
     });
   }, [refreshTrigger]);
 
@@ -56,10 +65,11 @@ const Admin = () => {
   };
 
   const handleApproveAdoption = (adoptionId: string) => {
-    // In a real app, this would update the database
+    // Find the adoption request
     const adoptionIndex = adoptionRequestsData.findIndex(a => a.id === adoptionId);
     if (adoptionIndex !== -1) {
-      adoptionRequestsData[adoptionIndex].status = "approved" as AdoptionStatus;
+      // Update the status to approved
+      adoptionRequestsData[adoptionIndex].status = "approved";
       adoptionRequestsData[adoptionIndex].updatedAt = new Date().toISOString();
       
       // Also update the pet status to adopted
@@ -75,21 +85,28 @@ const Admin = () => {
         status: adoption.status as AdoptionStatus
       }));
       setLocalAdoptionRequests(typedAdoptionRequests);
+      
+      // Update the adoption_requests.json file by updating localAdoptionRequests
+      console.log("Approved adoption:", adoptionId);
+      console.log("Updated adoption requests:", adoptionRequestsData);
     }
     
-    console.log("Approved adoption:", adoptionId);
     toast({
       title: "Adoption Approved",
       description: "The adoption request has been approved.",
     });
     setDialogOpen(false);
+    
+    // Refresh data to ensure all components are updated
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleRejectAdoption = (adoptionId: string) => {
-    // In a real app, this would update the database
+    // Find the adoption request
     const adoptionIndex = adoptionRequestsData.findIndex(a => a.id === adoptionId);
     if (adoptionIndex !== -1) {
-      adoptionRequestsData[adoptionIndex].status = "rejected" as AdoptionStatus;
+      // Update the status to rejected
+      adoptionRequestsData[adoptionIndex].status = "rejected";
       adoptionRequestsData[adoptionIndex].updatedAt = new Date().toISOString();
       
       // Update local state with properly typed data
@@ -98,14 +115,20 @@ const Admin = () => {
         status: adoption.status as AdoptionStatus
       }));
       setLocalAdoptionRequests(typedAdoptionRequests);
+      
+      // Log the updates for debugging
+      console.log("Rejected adoption:", adoptionId);
+      console.log("Updated adoption requests:", adoptionRequestsData);
     }
     
-    console.log("Rejected adoption:", adoptionId);
     toast({
       title: "Adoption Rejected",
       description: "The adoption request has been rejected.",
     });
     setDialogOpen(false);
+    
+    // Refresh data to ensure all components are updated
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const viewAdoptionDetails = (adoption: AdoptionRequest) => {
@@ -137,9 +160,31 @@ const Admin = () => {
     };
   };
 
-  // Find user details
+  // Find user details with proper error handling
   const getUserDetails = (userId: string) => {
-    return usersData.find(u => u.id === userId) || { name: "Unknown User", email: "unknown@example.com" };
+    const foundUser = localUsers.find(u => u.id === userId);
+    if (foundUser) {
+      return foundUser;
+    }
+    
+    // If not found in local state, try finding in usersData
+    const userData = usersData.find(u => u.id === userId);
+    if (userData) {
+      return { 
+        ...userData, 
+        role: userData.role as "admin" | "user" 
+      };
+    }
+    
+    // If still not found, return default values
+    return { 
+      id: "unknown", 
+      name: "Unknown User", 
+      email: "unknown@example.com", 
+      password: "", 
+      role: "user" as const,
+      createdAt: new Date().toISOString()
+    };
   };
 
   const updateOrderStatus = (orderId: string, newStatus: "processing" | "delivered" | "cancelled") => {
@@ -148,6 +193,9 @@ const Admin = () => {
     if (orderIndex !== -1) {
       ordersData[orderIndex].status = newStatus;
       ordersData[orderIndex].updatedAt = new Date().toISOString();
+      
+      // Update local state
+      setLocalOrders([...ordersData]);
       
       toast({
         title: "Order Updated",
@@ -275,7 +323,7 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-2">Manage customer orders.</p>
-                <p className="text-sm text-gray-500">{ordersData.length} orders placed</p>
+                <p className="text-sm text-gray-500">{localOrders.length} orders placed</p>
                 <Button 
                   variant="outline" 
                   className="mt-4 w-full"
@@ -454,14 +502,14 @@ const Admin = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {ordersData.length > 0 ? (
-                      ordersData.map((order) => {
+                    {localOrders.length > 0 ? (
+                      localOrders.map((order) => {
                         const customer = getUserDetails(order.userId);
                         
                         return (
                           <TableRow key={order.id}>
                             <TableCell>#{order.id.substring(4, 12)}</TableCell>
-                            <TableCell>{customer.name}</TableCell>
+                            <TableCell>{customer ? customer.name : 'Unknown User'}</TableCell>
                             <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>₹{order.total.toLocaleString()}</TableCell>
                             <TableCell>
@@ -554,35 +602,31 @@ const Admin = () => {
                   <TableBody>
                     {localAdoptionRequests.length > 0 ? (
                       localAdoptionRequests.map((adoption) => {
-                        const typedAdoption = {
-                          ...adoption,
-                          status: adoption.status as AdoptionStatus
-                        };
-                        const pet = getPetDetails(typedAdoption.petId);
-                        const requester = getUserDetails(typedAdoption.userId);
+                        const pet = getPetDetails(adoption.petId);
+                        const requester = getUserDetails(adoption.userId);
                         
                         return (
-                          <TableRow key={typedAdoption.id}>
-                            <TableCell>#{typedAdoption.id.substring(0, 8)}</TableCell>
-                            <TableCell>{pet.name} ({(pet.category as string).charAt(0).toUpperCase() + (pet.category as string).slice(1)})</TableCell>
-                            <TableCell>{requester.name}</TableCell>
-                            <TableCell>{new Date(typedAdoption.createdAt).toLocaleDateString()}</TableCell>
+                          <TableRow key={adoption.id}>
+                            <TableCell>#{adoption.id.substring(0, 8)}</TableCell>
+                            <TableCell>{pet.name} ({pet.category.charAt(0).toUpperCase() + pet.category.slice(1)})</TableCell>
+                            <TableCell>{requester ? requester.name : 'Unknown User'}</TableCell>
+                            <TableCell>{new Date(adoption.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>
                               <span className={`px-2 py-1 rounded-full text-xs ${
-                                typedAdoption.status === "approved" 
+                                adoption.status === "approved" 
                                   ? "bg-green-100 text-green-800" 
-                                  : typedAdoption.status === "rejected" 
+                                  : adoption.status === "rejected" 
                                     ? "bg-red-100 text-red-800"
                                     : "bg-yellow-100 text-yellow-800"
                               }`}>
-                                {typedAdoption.status.charAt(0).toUpperCase() + typedAdoption.status.slice(1)}
+                                {adoption.status.charAt(0).toUpperCase() + adoption.status.slice(1)}
                               </span>
                             </TableCell>
                             <TableCell>
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => viewAdoptionDetails(typedAdoption)}
+                                onClick={() => viewAdoptionDetails(adoption)}
                               >
                                 Review
                               </Button>
@@ -623,8 +667,8 @@ const Admin = () => {
                 
                 <div>
                   <h3 className="font-semibold">Requester</h3>
-                  <p>{getUserDetails(currentAdoption.userId).name}</p>
-                  <p className="text-sm text-gray-500">{getUserDetails(currentAdoption.userId).email}</p>
+                  <p>{getUserDetails(currentAdoption.userId).name || 'Unknown User'}</p>
+                  <p className="text-sm text-gray-500">{getUserDetails(currentAdoption.userId).email || 'unknown@example.com'}</p>
                 </div>
                 
                 <div>
@@ -671,7 +715,6 @@ const Admin = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
       </div>
     </Layout>
   );
