@@ -9,6 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import ordersData from "@/lib/data/orders.json";
+import { Order, OrderStatus } from "@/lib/types";
 
 const Checkout = () => {
   const { cart, clearCart } = useCart();
@@ -38,18 +39,18 @@ const Checkout = () => {
   const handleCheckout = () => {
     setLoading(true);
     
-    // Create an order object
-    const order = {
+    // Create a properly typed order object
+    const order: Order = {
       id: `ORD-${Math.random().toString(36).substr(2, 9)}`,
       userId: user!.id,
       items: cart.items,
       total: total,
-      status: "pending",
+      status: "pending" as OrderStatus,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
     
-    // Add the order to the orders array (in memory)
+    // Add the order to the orders array
     ordersData.push(order);
     
     toast({

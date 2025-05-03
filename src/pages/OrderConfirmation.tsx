@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { CheckIcon } from "lucide-react";
 import ordersData from "@/lib/data/orders.json";
-import { Order } from "@/lib/types";
+import { Order, OrderStatus, CartItem } from "@/lib/types";
 import { useCart } from "@/contexts/CartContext";
 
 const OrderConfirmation = () => {
@@ -28,15 +29,34 @@ const OrderConfirmation = () => {
       // Update order status to processing since payment was successful
       const orderIndex = ordersData.findIndex(o => o.id === orderId);
       if (orderIndex !== -1) {
-        ordersData[orderIndex].status = "processing";
-        ordersData[orderIndex].updatedAt = new Date().toISOString();
-        setOrder(ordersData[orderIndex]);
-        console.log("Order status updated to processing:", ordersData[orderIndex]);
+        // Create properly typed order object
+        const typedOrder: Order = {
+          ...ordersData[orderIndex],
+          status: "processing" as OrderStatus,
+          items: ordersData[orderIndex].items.map(item => ({
+            ...item,
+            type: item.type as "product" | "pet"
+          })) as CartItem[],
+          updatedAt: new Date().toISOString()
+        };
+        
+        // Update the order in the data array
+        ordersData[orderIndex] = typedOrder;
+        setOrder(typedOrder);
+        console.log("Order status updated to processing:", typedOrder);
         
         // Clear the cart after successful order
         clearCart();
       } else {
-        setOrder(foundOrder);
+        // If we can't find the order index (shouldn't happen), still show the found order
+        setOrder({
+          ...foundOrder,
+          items: foundOrder.items.map(item => ({
+            ...item,
+            type: item.type as "product" | "pet"
+          })) as CartItem[],
+          status: foundOrder.status as OrderStatus
+        });
       }
     }
   }, [orderId, navigate, clearCart]);

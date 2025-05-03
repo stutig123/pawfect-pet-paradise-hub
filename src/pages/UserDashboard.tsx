@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Order, AdoptionRequest, AdoptionStatus, PetCategory, Pet, PetStatus } from "@/lib/types";
+import { Order, OrderStatus, AdoptionRequest, AdoptionStatus, PetCategory, Pet, PetStatus, CartItem } from "@/lib/types";
 import ordersData from "@/lib/data/orders.json";
 import adoptionRequestsData from "@/lib/data/adoption_requests.json";
 import petsData from "@/lib/data/pets.json";
@@ -36,14 +36,19 @@ const UserDashboard = () => {
     if (user) {
       console.log("Loading user data for:", user.id);
       
-      // Filter orders for this user
+      // Filter orders for this user and ensure proper typing
       const filteredOrders = ordersData
         .filter(order => order.userId === user.id)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Most recent first
         .map(order => ({
           ...order,
-          status: order.status as "pending" | "processing" | "delivered" | "cancelled"
-        }));
+          status: order.status as OrderStatus,
+          items: order.items.map(item => ({
+            ...item,
+            type: item.type as "product" | "pet"
+          })) as CartItem[]
+        })) as Order[];
+      
       setUserOrders(filteredOrders);
       
       console.log("Available adoption requests:", adoptionRequestsData);
