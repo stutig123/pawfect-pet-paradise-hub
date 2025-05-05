@@ -104,7 +104,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./frontend
           push: true
           tags: stutigambhir/petshop:latest
           cache-from: type=gha
@@ -130,5 +130,3 @@ jobs:
           ansible-playbook ansible/playbook.yml -i ansible/inventory.ini --private-key stuti-key.pem -u ${{ secrets.EC2_USER }}
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
-
-    
