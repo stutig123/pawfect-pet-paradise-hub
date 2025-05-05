@@ -1,0 +1,32 @@
+---
+- name: Deploy Petshop App on EC2
+  hosts: web
+  become: true
+
+  tasks:
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Pull latest Docker image from Docker Hub
+      command: docker pull stutigambhir/petshop:latest
+
+    - name: Stop existing container (if running)
+      shell: |
+        docker ps -q --filter "name=petshop" | grep -q . && docker stop petshop || true
+
+    - name: Remove existing container (if exists)
+      shell: |
+        docker ps -a -q --filter "name=petshop" | grep -q . && docker rm petshop || true
+
+    - name: Run Petshop container
+      command: docker run -d -p 80:3000 --name petshop stutigambhir/petshop:latest
